@@ -167,7 +167,7 @@ test.describe('Google Drive – Gerätewechsel (echte OAuth + Drive API)', () =>
     // Antwort über __rmState-Bridge hinzufügen (löst den 30s-Debounce aus)
     await page1.evaluate(({ key, value }) => {
       const bridge = (window as unknown as {
-        __rmState?: { get: () => Record<string, unknown> | null; save: (s: unknown) => void }
+        __rmState?: { get: () => Record<string, unknown> | null; save?: (s: unknown) => void }
       }).__rmState
       const state = bridge?.get() ?? {}
       const now   = new Date().toISOString()
@@ -175,7 +175,11 @@ test.describe('Google Drive – Gerätewechsel (echte OAuth + Drive API)', () =>
         id: key, questionId: key, categoryId: 'childhood',
         value, createdAt: now, updatedAt: now,
       }
-      bridge?.save(state)
+      if (bridge?.save) {
+        bridge.save(state)
+      } else {
+        localStorage.setItem('remember-me-state', JSON.stringify(state))
+      }
     }, { key: ANSWER_KEY, value: ANSWER_VALUE })
 
     // Warten bis Drive-Upload abgeschlossen ist (lastSyncAt wird gesetzt)
