@@ -164,14 +164,20 @@ export async function seedAnswer(
   // trigger useAutoShare) must seed BEFORE reopenFamilyHub() so the next
   // page load picks the value out of localStorage.
   await page.evaluate(({ questionId, categoryId, value }) => {
-    type Bridge = { get: () => Record<string, unknown> | null; save: (s: unknown) => void }
+    type Bridge = { get: () => Record<string, unknown> | null; save?: (s: unknown) => void }
     const bridge = (window as unknown as { __rmState?: Bridge }).__rmState
     const state: Record<string, unknown> = bridge?.get() ?? {}
     const answers = (state.answers as Record<string, unknown>) ?? {}
     const now = new Date().toISOString()
     answers[questionId] = { id: questionId, questionId, categoryId, value, createdAt: now, updatedAt: now }
     state.answers = answers
-    bridge?.save(state)
+    if (bridge?.save) {
+      bridge.save(state)
+    } else {
+      // Production build: bridge.save is not exposed. Write the full
+      // in-memory state as plaintext JSON so the next page load picks it up.
+      localStorage.setItem('remember-me-state', JSON.stringify(state))
+    }
   }, { questionId, categoryId, value })
 }
 
@@ -191,7 +197,7 @@ export async function injectOnlineFriend(
   shareAll = true,
 ) {
   await page.evaluate(({ name, deviceId, publicKey, shareAll }) => {
-    type Bridge = { get: () => Record<string, unknown> | null; save: (s: unknown) => void }
+    type Bridge = { get: () => Record<string, unknown> | null; save?: (s: unknown) => void }
     const bridge = (window as unknown as { __rmState?: Bridge }).__rmState
     const state: Record<string, unknown> = bridge?.get() ?? {}
     const friends = (state.friends as Array<{ online?: { deviceId?: string } }>) ?? []
@@ -204,7 +210,13 @@ export async function injectOnlineFriend(
       })
     }
     state.friends = friends
-    bridge?.save(state)
+    if (bridge?.save) {
+      bridge.save(state)
+    } else {
+      // Production build: bridge.save is not exposed. Write the full
+      // in-memory state as plaintext JSON so the next page load picks it up.
+      localStorage.setItem('remember-me-state', JSON.stringify(state))
+    }
   }, { name, deviceId, publicKey, shareAll })
 }
 

@@ -67,11 +67,15 @@ test.describe('Einladungslink – bestehende Daten bleiben erhalten', () => {
     await seedAnswer(bob, 'invite-q-school',    'school',    'Meine Lieblingsschulfach war Musik.')
 
     await bob.evaluate(() => {
-      type Bridge = { get: () => Record<string, unknown> | null; save: (s: unknown) => void }
+      type Bridge = { get: () => Record<string, unknown> | null; save?: (s: unknown) => void }
       const bridge = (window as unknown as { __rmState?: Bridge }).__rmState
       const state = bridge?.get() ?? {}
       state.appMode = 'simplified'
-      bridge?.save(state)
+      if (bridge?.save) {
+        bridge.save(state)
+      } else {
+        localStorage.setItem('remember-me-state', JSON.stringify(state))
+      }
     })
 
     // ── Bob öffnet Alices Einladungslink ─────────────────────────────────────
