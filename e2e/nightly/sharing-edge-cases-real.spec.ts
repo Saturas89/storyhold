@@ -158,7 +158,7 @@ test.describe('Real-DB: Auto-Share Edge Cases (REQ-022)', () => {
 
     // Toggle auf true: Friend im State direkt aktualisieren
     await alice.evaluate(({ bobDeviceId }) => {
-      type Bridge = { get: () => Record<string, unknown> | null; save: (s: unknown) => void }
+      type Bridge = { get: () => Record<string, unknown> | null; save?: (s: unknown) => void }
       const bridge = (window as unknown as { __rmState?: Bridge }).__rmState
       const state: Record<string, unknown> = bridge?.get() ?? {}
       const friends = (state.friends as Array<Record<string, unknown>>) ?? []
@@ -167,7 +167,11 @@ test.describe('Real-DB: Auto-Share Edge Cases (REQ-022)', () => {
         if (o?.deviceId === bobDeviceId) o.shareAll = true
       }
       state.friends = friends
-      bridge?.save(state)
+      if (bridge?.save) {
+        bridge.save(state)
+      } else {
+        localStorage.setItem('remember-me-state', JSON.stringify(state))
+      }
     }, { bobDeviceId: bobId.deviceId })
 
     // Reload → useAutoShare erkennt Bob nun als shareAll=true und backfillt
