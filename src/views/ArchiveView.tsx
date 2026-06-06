@@ -379,6 +379,7 @@ export function ArchiveView({
                             className="archive-entry__edit-btn"
                             onClick={() => startEdit(q.id, answers[q.id].value)}
                             aria-label={t.archiveView.editAnswerAriaLabel}
+                            title={t.archiveView.editAnswerAriaLabel}
                           >
                             ✏️
                           </button>
@@ -386,6 +387,7 @@ export function ArchiveView({
                             className="archive-entry__delete-btn"
                             onClick={() => handleDeleteAnswer(q.id)}
                             aria-label={t.archiveView.deleteAnswerAriaLabel}
+                            title={t.archiveView.deleteAnswerAriaLabel}
                           >
                             🗑
                           </button>
@@ -458,6 +460,7 @@ export function ArchiveView({
                             className="archive-entry__edit-btn"
                             onClick={() => startEdit(q.id, answer.value)}
                             aria-label={t.archiveView.editAnswerAriaLabel}
+                            title={t.archiveView.editAnswerAriaLabel}
                           >
                             ✏️
                           </button>
@@ -465,6 +468,7 @@ export function ArchiveView({
                             className="archive-entry__delete-btn"
                             onClick={() => handleDeleteEntry(q.id)}
                             aria-label={t.archiveView.deleteAnswerAriaLabel}
+                            title={t.archiveView.deleteAnswerAriaLabel}
                           >
                             🗑
                           </button>
