@@ -51,10 +51,11 @@ describe('WelcomeBackBanner', () => {
     expect(screen.getByText(de.reminder.welcomeBack.title)).not.toBeNull()
   })
 
-  it('shows story-waiting body when memoriesCount > 1', () => {
+  it('shows story-waiting body with the memory count when memoriesCount > 1', () => {
     render(<WelcomeBackBanner {...defaultProps} memoriesCount={7} />)
 
-    expect(screen.getByText(de.reminder.welcomeBack.bodyMemoriesMany)).not.toBeNull()
+    const expected = de.reminder.welcomeBack.bodyMemoriesMany.replace('{count}', '7')
+    expect(screen.getByText(expected)).not.toBeNull()
   })
 
   it('shows story-waiting body when memoriesCount is 1', () => {
@@ -107,10 +108,11 @@ describe('WelcomeBackBanner', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1)
   })
 
-  it('shows story-waiting body for large memoryCounts', () => {
+  it('shows story-waiting body with the memory count for large memoryCounts', () => {
     render(<WelcomeBackBanner {...defaultProps} memoriesCount={42} />)
 
-    expect(screen.getByText(de.reminder.welcomeBack.bodyMemoriesMany)).not.toBeNull()
+    const expected = de.reminder.welcomeBack.bodyMemoriesMany.replace('{count}', '42')
+    expect(screen.getByText(expected)).not.toBeNull()
   })
 
   it('continue button is focusable for accessibility', () => {

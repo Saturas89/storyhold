@@ -4,6 +4,7 @@ import './LandingView.css'
 
 interface Props {
   onStart: () => void
+  onShowImpressum: () => void
 }
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -154,7 +155,7 @@ function LandingImage({ src, alt, aspectRatio }: { src: string; alt: string; asp
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function LandingView({ onStart }: Props) {
+export function LandingView({ onStart, onShowImpressum }: Props) {
   const { t } = useTranslation()
   const l = t.landing
   const questionsRef = useRef<HTMLElement>(null)
@@ -263,7 +264,7 @@ export function LandingView({ onStart }: Props) {
       </section>
 
       {/* ── Legacy ── */}
-      <section className="landing-legacy">
+      <section className="landing-legacy" id="about">
         <div className="landing-inner landing-legacy__inner">
           <div className="landing-legacy__media">
             <LandingImage src="/landing/legacy.jpg" alt={l.legacy.imgAlt} aspectRatio="4/3" />
@@ -335,6 +336,24 @@ export function LandingView({ onStart }: Props) {
           </div>
         </div>
       </section>
+
+      {/* ── Footer ── */}
+      <footer className="landing-footer" id="privacy">
+        <div className="landing-inner landing-footer__inner">
+          <div className="landing-footer__badges" aria-label="Storyhold trust badges">
+            <span className="friends-tag friends-tag--accent">{t.impressum.badgeOpenSource}</span>
+            <span className="friends-tag friends-tag--accent">{t.impressum.badgeMadeInGermany}</span>
+          </div>
+          <h2 className="landing-footer__heading">{l.footer.privacyHeading}</h2>
+          <p className="landing-footer__text">{l.footer.privacyText}</p>
+          <div className="landing-footer__links">
+            <button type="button" className="landing-footer__link" onClick={onShowImpressum}>
+              {l.footer.impressumLink}
+            </button>
+          </div>
+          <p className="landing-footer__copy">© {new Date().getFullYear()} Storyhold</p>
+        </div>
+      </footer>
 
     </div>
   )

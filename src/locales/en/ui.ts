@@ -232,8 +232,8 @@ export const UI_EN = {
     dismiss: 'Dismiss notification',
     welcomeBack: {
       title: 'Welcome back!',
-      bodyMemoriesOne: 'Your story is waiting to be continued.',
-      bodyMemoriesMany: 'Your story is waiting to be continued.',
+      bodyMemoriesOne: 'Your first memory is saved — tell the next one.',
+      bodyMemoriesMany: 'Already {count} memories captured — your story keeps growing.',
       bodyNoMemories: 'Glad you\'re back.',
       continueCta: 'Continue my story',
       dismiss: 'Dismiss',
@@ -781,6 +781,11 @@ export const UI_EN = {
       cta: 'Start Preserving Memories',
       socialProof: 'Join over 10,000 families preserving their stories with Storyhold.',
       imgAlt: 'Framed family photo on a table with flowers',
+    },
+    footer: {
+      privacyHeading: 'Privacy & Legal',
+      privacyText: 'Your stories stay on your device. We never sell your data and there is no ad tracking.',
+      impressumLink: 'Legal notice',
     },
   },
   sandraFlow: SANDRA_FLOW_EN,

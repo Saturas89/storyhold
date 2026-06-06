@@ -232,8 +232,8 @@ export const UI_DE = {
     dismiss: 'Benachrichtigung schließen',
     welcomeBack: {
       title: 'Willkommen zurück!',
-      bodyMemoriesOne: 'Deine Geschichte möchte weitererzählt werden.',
-      bodyMemoriesMany: 'Deine Geschichte möchte weitererzählt werden.',
+      bodyMemoriesOne: 'Deine erste Erinnerung ist gespeichert – erzähl die nächste.',
+      bodyMemoriesMany: 'Schon {count} Erinnerungen festgehalten – deine Geschichte wächst.',
       bodyNoMemories: 'Schön, dass du wieder da bist.',
       continueCta: 'Weitererzählen',
       dismiss: 'Schließen',
@@ -788,6 +788,11 @@ export const UI_DE = {
       cta: 'Erinnerungen bewahren',
       socialProof: 'Schließe dich über 10.000 Familien an, die ihre Geschichten mit Storyhold bewahren.',
       imgAlt: 'Gerahmtes Familienfoto auf einem Tisch mit Blumen',
+    },
+    footer: {
+      privacyHeading: 'Datenschutz & Impressum',
+      privacyText: 'Deine Geschichten bleiben auf deinem Gerät. Kein Verkauf deiner Daten, kein Werbe-Tracking.',
+      impressumLink: 'Impressum',
     },
   },
   sandraFlow: SANDRA_FLOW_DE,
