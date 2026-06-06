@@ -22,6 +22,8 @@ export interface LpContent {
   finalH2: string
   finalBody: string
   finalCta: string
+  footerPrivacy: string
+  impressumLabel: string
   heroImg?: string
   ctaImg?: string
 }
@@ -234,6 +236,21 @@ export function LpView({ content }: { content: LpContent }) {
           </div>
         </div>
       </section>
+
+      {/* ── Footer ── */}
+      <footer className="landing-footer">
+        <div className="landing-inner landing-footer__inner">
+          <div className="landing-footer__badges" aria-label="Storyhold trust badges">
+            <span className="friends-tag friends-tag--accent">🔓 Open Source · AGPL-3.0</span>
+            <span className="friends-tag friends-tag--accent">🇩🇪 Made in Germany</span>
+          </div>
+          <p className="landing-footer__text">{content.footerPrivacy}</p>
+          <div className="landing-footer__links">
+            <a className="landing-footer__link" href="/impressum">{content.impressumLabel}</a>
+          </div>
+          <p className="landing-footer__copy">© {new Date().getFullYear()} Storyhold</p>
+        </div>
+      </footer>
 
     </div>
   )

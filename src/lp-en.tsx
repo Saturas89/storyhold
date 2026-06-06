@@ -58,6 +58,9 @@ const content: LpContent = {
   finalH2: 'Preserve the stories of the people you love most.',
   finalBody: 'Start now and create something your family will be grateful to have forever.',
   finalCta: 'Get started with Storyhold',
+
+  footerPrivacy: 'Your stories stay on your device. We never sell your data and there is no ad tracking.',
+  impressumLabel: 'Legal notice',
 }
 
 createRoot(document.getElementById('root')!).render(

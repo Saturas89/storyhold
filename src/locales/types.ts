@@ -849,6 +849,11 @@ export interface Translations {
       socialProof: string
       imgAlt: string
     }
+    footer: {
+      privacyHeading: string
+      privacyText: string
+      impressumLink: string
+    }
   }
 
   categories: Category[]

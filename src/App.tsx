@@ -568,7 +568,10 @@ function AppShell() {
       )}
 
       {view.name === 'landing' && (
-        <LandingView onStart={() => goTo({ name: 'home' })} />
+        <LandingView
+          onStart={() => goTo({ name: 'home' })}
+          onShowImpressum={() => goTo({ name: 'impressum', from: 'landing' })}
+        />
       )}
 
       {view.name === 'home' && (

@@ -58,6 +58,9 @@ const content: LpContent = {
   finalH2: 'Bewahre die Geschichten der Menschen, die du am meisten liebst.',
   finalBody: 'Beginne jetzt und schaffe etwas, für das deine Familie dir für immer dankbar sein wird.',
   finalCta: 'Mit Storyhold starten',
+
+  footerPrivacy: 'Deine Geschichten bleiben auf deinem Gerät. Kein Verkauf deiner Daten, kein Werbe-Tracking.',
+  impressumLabel: 'Impressum',
 }
 
 createRoot(document.getElementById('root')!).render(

@@ -30,7 +30,7 @@ export type View =
   | { name: 'sync' }
   | { name: 'custom-questions' }
   | { name: 'faq'; from: 'profile' | 'home' }
-  | { name: 'impressum'; from: 'profile' | 'home' }
+  | { name: 'impressum'; from: 'profile' | 'home' | 'landing' }
   | { name: 'online-intro' }
   | { name: 'online-hub' }
   | { name: 'sandra-flow'; initialStep?: import('../views/SandraFlowView').SandraStep }
@@ -54,6 +54,7 @@ export function pathToView(pathname: string): View {
     case 'sync':    return { name: 'sync' }
     case 'debug':   return { name: 'debug' }
     case 'landing': return { name: 'landing' }
+    case 'impressum': return { name: 'impressum', from: 'home' }
     case 'ask':     return { name: 'sandra-flow' }
     case 'join':    return { name: 'home' }
     default:        return { name: 'home' }
@@ -125,7 +126,7 @@ export function useNavigation({
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     const paths: Partial<Record<View['name'], string>> = {
       home: '/', friends: '/friends', archive: '/archive', profile: '/profile', sync: '/sync',
-      'online-hub': '/friends', 'online-intro': '/friends',
+      'online-hub': '/friends', 'online-intro': '/friends', impressum: '/impressum',
     }
     let path = paths[v.name]
     if (v.name === 'quiz') path = `/quiz/${v.categoryId}`
