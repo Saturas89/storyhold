@@ -345,6 +345,39 @@
   letter-spacing: 0.04em;
 }
 
+/* Recovery-code reveal (#383): present the key as a prominent, readable card
+   – not a tiny inline code snippet – with a one-tap copy action. */
+.private-sync-view__code-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface-raised);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 0.6rem 0 1rem;
+}
+
+.private-sync-view__code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--text);
+  word-break: break-word;
+  background: none;
+}
+
+.private-sync-view__save-callout {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
 /* Stacked label + input pattern, used in private-sync setup forms */
 .profile-label {
   display: flex;
@@ -3785,6 +3818,29 @@
   gap: 0.5rem;
   margin-top: 0.35rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.audio-rec-actions__secondary {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Simple Mode (#382): stack with a dominant primary CTA and a quieter
+   secondary row, instead of three visually equal buttons. */
+.audio-rec-actions--simple {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+}
+
+.audio-rec-actions--simple .audio-rec-actions__primary {
+  width: 100%;
+}
+
+.audio-rec-actions--simple .audio-rec-actions__secondary {
+  justify-content: center;
 }
 
 .audio-rec-live-transcript {

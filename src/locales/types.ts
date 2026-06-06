@@ -743,6 +743,12 @@ export interface Translations {
     recoveryCodeWarning: string
     /** Concrete suggestions where to store the recovery code (#173). */
     recoveryCodeAdvice: string
+    /** Prominent call-to-action above the confirm checkbox: save the code now (#383). */
+    recoveryCodeSaveCallout: string
+    /** Copy-to-clipboard button label for the recovery code (#383). */
+    recoveryCodeCopy: string
+    /** Confirmation label shown after the code was copied (#383). */
+    recoveryCodeCopied: string
     recoveryCodeConfirm: string
     enterCodeTitle: string
     enterCodeDesc: string

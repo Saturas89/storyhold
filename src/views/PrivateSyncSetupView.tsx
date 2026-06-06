@@ -65,6 +65,7 @@ export function PrivateSyncSetupView({ onComplete }: Props) {
   // Recovery code state
   const [recoveryCode, setRecoveryCode] = useState('')
   const [codeConfirmed, setCodeConfirmed] = useState(false)
+  const [codeCopied, setCodeCopied] = useState(false)
   const [enteredCode, setEnteredCode] = useState('')
   const [codeError, setCodeError] = useState<string | null>(null)
   const [showLostKeyDialog, setShowLostKeyDialog] = useState(false)
@@ -342,6 +343,17 @@ export function PrivateSyncSetupView({ onComplete }: Props) {
       setError('Schlüssel konnte nicht gespeichert werden')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleCopyRecoveryCode() {
+    try {
+      await navigator.clipboard.writeText(formatRecoveryCode(recoveryCode))
+      setCodeCopied(true)
+      setTimeout(() => setCodeCopied(false), 2000)
+    } catch {
+      // Clipboard API unavailable (e.g. insecure context) – the code stays
+      // visible for the user to write down, so a silent no-op is acceptable.
     }
   }
 
@@ -742,9 +754,20 @@ export function PrivateSyncSetupView({ onComplete }: Props) {
           <p className="friends-hint">{s.recoveryCodeDesc}</p>
           <div className="private-sync-view__code-box">
             <code className="private-sync-view__code">{formatRecoveryCode(recoveryCode)}</code>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm private-sync-view__code-copy"
+              onClick={handleCopyRecoveryCode}
+            >
+              {codeCopied ? s.recoveryCodeCopied : s.recoveryCodeCopy}
+            </button>
           </div>
           <p className="friends-hint">{s.recoveryCodeWarning}</p>
           <p className="friends-hint">{s.recoveryCodeAdvice}</p>
+          <p className="friends-hint friends-hint--warn private-sync-view__save-callout">
+            <span aria-hidden="true">📸</span>
+            <span>{s.recoveryCodeSaveCallout}</span>
+          </p>
           <label className="private-sync-view__confirm-label">
             <input
               type="checkbox"
