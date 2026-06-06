@@ -252,16 +252,25 @@ export function MediaCapture({
               <span>{m.saveAudioFileLabel}</span>
             </label>
           )}
-          <div className="audio-rec-actions">
-            <button type="button" className="btn btn--primary btn--sm" onClick={handleAudioConfirm}>
+          {/* Action hierarchy (#382): in Simple Mode the primary "accept" button
+              fills the width and the two secondary actions sit on a quieter row
+              below, so the Ingrid persona isn't faced with three equal choices. */}
+          <div className={`audio-rec-actions${isSimple ? ' audio-rec-actions--simple' : ''}`}>
+            <button
+              type="button"
+              className={`btn btn--primary${isSimple ? '' : ' btn--sm'} audio-rec-actions__primary`}
+              onClick={handleAudioConfirm}
+            >
               {m.confirmAccept}
             </button>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={rec.reset}>
-              {m.retryRecord}
-            </button>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={handleCancelRecording}>
-              {m.discardRecord}
-            </button>
+            <div className="audio-rec-actions__secondary">
+              <button type="button" className="btn btn--ghost btn--sm" onClick={rec.reset}>
+                {m.retryRecord}
+              </button>
+              <button type="button" className="btn btn--ghost btn--sm" onClick={handleCancelRecording}>
+                {m.discardRecord}
+              </button>
+            </div>
           </div>
         </div>
       )}

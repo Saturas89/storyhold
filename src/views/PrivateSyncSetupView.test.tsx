@@ -191,6 +191,36 @@ describe('PrivateSyncSetupView – H4 sign-up vs sign-in', () => {
     expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled()
     expect(supabase.auth.signUp).toHaveBeenCalledOnce()
   })
+
+  it('H4-03: the copy button writes the formatted recovery code to the clipboard (#383)', async () => {
+    const writeText = vi.fn(async () => {})
+    Object.assign(navigator, { clipboard: { writeText } })
+
+    const { getSyncSupabaseClient } = await import('../utils/privateSyncClient')
+    const supabase = getSyncSupabaseClient() as unknown as {
+      auth: { signUp: ReturnType<typeof vi.fn> }
+    }
+    supabase.auth.signUp.mockResolvedValueOnce({
+      data: { user: { id: 'copy-user-id' }, session: { user: { id: 'copy-user-id' } } },
+      error: null,
+    })
+
+    render(<PrivateSyncSetupView onComplete={vi.fn()} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: RX.setupButton }))
+    fireEvent.click(await screen.findByRole('button', { name: new RegExp(RX.supabaseTitle.source) }))
+    fireEvent.click(await screen.findByRole<HTMLButtonElement>('button', { name: RX.continueButton }))
+    fireEvent.click(await screen.findByRole<HTMLButtonElement>('button', { name: /Nein, neues Konto erstellen|No, create a new account/ }))
+    fireEvent.change(await screen.findByLabelText(RX.emailLabel), { target: { value: 'copy@example.com' } })
+    fireEvent.change(await screen.findByLabelText(RX.passwordLabel), { target: { value: 'a-fresh-password' } })
+    fireEvent.click(await screen.findByRole('button', { name: /^Konto erstellen$|^Create account$/ }))
+
+    await screen.findByText(/Dein Sicherheitsschlüssel|Your security key/)
+    fireEvent.click(screen.getByRole('button', { name: /Schlüssel kopieren|Copy key/ }))
+
+    // formatRecoveryCode mock turns the raw code into dash-separated groups.
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('AAAA-BBBB-CCCC-DDDD-EEEE-FFFF'))
+  })
 })
 
 describe('PrivateSyncSetupView – Lost-Key reset (REQ-018)', () => {
