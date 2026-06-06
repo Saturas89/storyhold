@@ -630,13 +630,13 @@
   position: absolute;
   top: 1.1rem;
   right: 0;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--border);
   background: var(--surface);
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 1.1rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -3444,15 +3444,22 @@
 
 .archive-entry__actions {
   display: flex;
-  gap: 0.15rem;
+  gap: 0.4rem;
 }
 
+/* Tap-targets ≥44px and clearer separation so the edit (✏️) and delete (🗑)
+   actions are not mistaken for one another on small screens (#386). */
 .archive-entry__edit-btn,
 .archive-entry__delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   padding: 0.2rem 0.4rem;
   border-radius: 8px;
   transition: color 0.15s, background 0.15s;
@@ -6215,8 +6222,8 @@ details[open] .faq-item__chevron {
 }
 
 [data-app-mode="simple"] .btn--sm {
-  min-height: 2.4rem;
-  padding: 0.4rem 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.9rem;
   font-size: 0.95rem;
 }
 

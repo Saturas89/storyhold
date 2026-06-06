@@ -39,7 +39,7 @@ export const UI_EN = {
     featuresForeverTitle: 'Forever',
     featuresForeverDesc: 'For family & posterity',
     nameLabel: "What's your name?",
-    nameLabelHint: 'Your name personalises the invitations for friends and family.',
+    nameLabelHint: 'Your name stays on your device. It only appears in invitations you send to friends and family yourself.',
     namePlaceholder: 'Your name...',
     startButton: 'Get started →',
     alreadyUsed: 'Already used Storyhold before?',
@@ -336,7 +336,7 @@ export const UI_EN = {
   onlineSharingHub: {
     back: 'Back',
     title: 'Family Mode',
-    syncErrorPrefix: 'Sync error: ',
+    syncErrorPrefix: 'Connection problem: ',
     syncErrorGeneric: 'Sync is having a hiccup right now. Your memories are safely stored on this device. Please try again later.',
     syncErrorOffline: 'No connection. Sync will resume automatically as soon as you\'re back online.',
     syncErrorAuth: 'We need to sign you in again. Tap "Sign in again" below.',

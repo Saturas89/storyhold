@@ -39,7 +39,7 @@ export const UI_DE = {
     featuresForeverTitle: 'Für immer',
     featuresForeverDesc: 'Für Familie & Nachwelt',
     nameLabel: 'Wie heißt du?',
-    nameLabelHint: 'Dein Name personalisiert die Einladungen für Freunde und Familie.',
+    nameLabelHint: 'Dein Name bleibt auf deinem Gerät. Er erscheint nur in Einladungen, die du selbst an Freunde und Familie verschickst.',
     namePlaceholder: 'Dein Name...',
     startButton: 'Loslegen →',
     alreadyUsed: 'Du hast Storyhold schon einmal genutzt?',
@@ -337,7 +337,7 @@ export const UI_DE = {
   onlineSharingHub: {
     back: 'Zurück',
     title: 'Familienmodus',
-    syncErrorPrefix: 'Sync-Fehler: ',
+    syncErrorPrefix: 'Verbindungsproblem: ',
     syncErrorGeneric: 'Die Synchronisierung hat momentan ein Problem. Deine Erinnerungen sind sicher auf dem Gerät gespeichert. Bitte später erneut versuchen.',
     syncErrorOffline: 'Keine Verbindung. Sobald du wieder online bist, läuft die Synchronisierung von selbst weiter.',
     syncErrorAuth: 'Wir müssen dich neu anmelden. Tippe unten auf „Erneut anmelden".',
