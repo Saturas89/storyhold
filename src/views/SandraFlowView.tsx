@@ -127,10 +127,6 @@ export function SandraFlowView({
     setDraftState(prev => ({ ...prev, currentTriggerId: triggerId, currentSeed: undefined }))
   }, [])
 
-  const setCurrentSeed = useCallback((seed: string | undefined) => {
-    setDraftState(prev => ({ ...prev, currentSeed: seed }))
-  }, [])
-
   const addQuestion = useCallback((text: string, triggerId: string) => {
     const trigger = findTrigger(locale, triggerId)
     if (!trigger) return
@@ -139,7 +135,6 @@ export function SandraFlowView({
       triggerId,
       group: trigger.group,
       text,
-      seed: draft.currentSeed?.trim() || undefined,
       createdAt: Date.now(),
     }
     setDraftState(prev => ({
@@ -149,7 +144,7 @@ export function SandraFlowView({
       currentSeed: undefined,
     }))
     setStep('list')
-  }, [draft.currentSeed, locale])
+  }, [locale])
 
   const editQuestionText = useCallback((id: string, text: string) => {
     setDraftState(prev => ({
@@ -265,8 +260,6 @@ export function SandraFlowView({
         locale={locale}
         anchor={draft.anchor}
         triggerId={draft.currentTriggerId ?? 'freeform'}
-        seed={draft.currentSeed ?? ''}
-        onSeedChange={setCurrentSeed}
         onChangeTrigger={() => setStep('trigger')}
         onDiscard={() => {
           setCurrentTrigger(undefined)

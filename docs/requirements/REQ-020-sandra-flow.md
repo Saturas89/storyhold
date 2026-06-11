@@ -44,13 +44,15 @@ ausschließlich vorgegebene Themen-Packs anbot – Sandra konnte zwar
 - **FR-020.3** Trigger-Bank umfasst **10 Trigger** pro Locale, aufgeteilt
   in zwei Gruppen (`biography`: 6, `relationship`: 4). Sandra darf außerdem
   einen **Freeform-Trigger** wählen und eine eigene Frage tippen.
-- **FR-020.4** Composer rendert die Template-Vorschläge eines Triggers,
-  sobald `seed.length >= 1` ODER der Template eine `withoutSeed`-Variante
-  hat. Vorschläge können „So nehmen", „Anpassen" (inline-edit) oder „✕"
-  (verwerfen) werden.
-- **FR-020.5** Inspirations-Schublade pro Trigger zeigt 6–8 kuratierte
-  Beispiele. Klick kopiert den Text **nur** in das Seed-Textarea, niemals
-  direkt in die Fragen-Liste (Sandras Hand bleibt am Steuer).
+- **FR-020.4** Composer zeigt **ein einziges editierbares Frage-Feld**,
+  vorbefüllt mit der besten Formulierung des Triggers (`withoutSeed`-Variante
+  bzw. erstes kuratiertes Beispiel). „Frage übernehmen" fügt den Feldinhalt
+  zur Liste hinzu — der Null-Tipp-Pfad ist damit zwei Taps lang.
+- **FR-020.5** Unter dem Frage-Feld steht eine flache Formulierungs-Liste
+  pro Trigger: `withoutSeed`-Template-Varianten plus 6–8 kuratierte
+  Beispiele (mit Anrede-Präfix, dedupliziert). Tap ersetzt **nur** den Text
+  im Frage-Feld, niemals direkt in der Fragen-Liste (Sandras Hand bleibt
+  am Steuer).
 - **FR-020.6** Fragen-Liste erlaubt Edit / Reorder / Delete. Es gibt **kein
   Private-Toggle** – jede Frage in der Liste wird gesendet.
 - **FR-020.7** Versand öffnet die Web-Share-API mit einem kombinierten Link:
@@ -291,8 +293,8 @@ interface PersonalPackReceiveViewProps {
 ### End-to-End (Playwright)
 
 - [ ] Happy Path: Landing → Anchor (Mama) → Trigger („Bevor es dich gab") →
-  Composer (Seed leer → `withoutSeed`-Variante) → „Frage übernehmen" →
-  Liste → „An Mama schicken" → Web-Share-Stub feuert.
+  Composer (Frage-Feld vorbefüllt) → „Frage übernehmen" → Liste →
+  „An Mama schicken" → Web-Share-Stub feuert.
 - [ ] Empfänger-Seite: URL mit `?qp=…` öffnet die `PersonalPackReceiveView`,
   Auto-Suggest erscheint, „Ja, einfach machen" setzt `data-app-mode="simple"`
   und der erste Frage-Text wird gerendert.

@@ -139,15 +139,10 @@ test.describe('Sandra-Flow – DE Happy Path', () => {
     await triggerButtons.first().click()
 
     // ── Screen 4: composer ─────────────────────────────────────────────────
-    // Suggestions appear when `withoutSeed` exists OR the seed is non-empty.
-    // We type a short seed to make suggestions appear deterministically.
-    await page.getByTestId('sandra-composer-seed').fill('Schulzeit')
-    const firstSuggestion = page.locator('[data-testid^="sandra-suggestion-"]').first()
-    await expect(firstSuggestion).toBeVisible({ timeout: 10_000 })
-    await firstSuggestion.click()
-    // Confirm the suggestion via the "use" button → question gets added.
-    const useBtn = page.locator('[data-testid^="sandra-suggestion-use-"]').first()
-    await useBtn.click()
+    // The draft textarea is pre-filled with the best phrasing of the topic –
+    // the zero-typing path is just "Frage übernehmen".
+    await expect(page.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await page.getByTestId('sandra-composer-add').click()
 
     // ── Screen 5: list shows 1 card, send enabled, NO private toggle ───────
     const send = page.getByTestId('sandra-list-send')
@@ -208,14 +203,13 @@ test.describe('Sandra-Flow – EN Happy Path', () => {
     await expect(triggerButtons.first()).toBeVisible()
     await triggerButtons.first().click()
 
-    // ── Screen 4: composer with an English seed ─────────────────────────────
-    await page.getByTestId('sandra-composer-seed').fill('school')
-    const firstSuggestion = page.locator('[data-testid^="sandra-suggestion-"]').first()
-    await expect(firstSuggestion).toBeVisible({ timeout: 10_000 })
-    const suggestionText = (await firstSuggestion.innerText()).trim()
-    expect(suggestionText.length).toBeGreaterThan(0)
+    // ── Screen 4: composer pre-fills an English phrasing ────────────────────
+    const draftBox = page.getByTestId('sandra-composer-draft')
+    await expect(draftBox).not.toHaveValue('')
+    const draftText = (await draftBox.inputValue()).trim()
+    expect(draftText.length).toBeGreaterThan(0)
     // The English bank must NOT spit out obvious German fillers like „hast du".
-    expect(suggestionText.toLowerCase()).not.toMatch(/\bhast du\b/)
+    expect(draftText.toLowerCase()).not.toMatch(/\bhast du\b/)
   })
 })
 
@@ -236,9 +230,8 @@ test.describe('Sandra-Flow – Receiver Path (Ingrid)', () => {
     await sender.getByTestId('sandra-anchor-chip-mama').click()
     await sender.getByTestId('sandra-anchor-next').click()
     await sender.locator('[data-testid^="sandra-trigger-"]').first().click()
-    await sender.getByTestId('sandra-composer-seed').fill('Schulzeit')
-    await sender.locator('[data-testid^="sandra-suggestion-"]').first().click()
-    await sender.locator('[data-testid^="sandra-suggestion-use-"]').first().click()
+    await expect(sender.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await sender.getByTestId('sandra-composer-add').click()
     await sender.getByTestId('sandra-list-send').click()
     // Sandra leaves the "Großschrift-Modus voreinstellen" checkbox checked (default).
     await expect(sender.getByTestId('sandra-share-cta')).toBeEnabled({ timeout: 15_000 })
@@ -298,9 +291,8 @@ test.describe('Sandra-Flow – Receiver Path (Ingrid)', () => {
     await sPage.getByTestId('sandra-anchor-chip-mama').click()
     await sPage.getByTestId('sandra-anchor-next').click()
     await sPage.locator('[data-testid^="sandra-trigger-"]').first().click()
-    await sPage.getByTestId('sandra-composer-seed').fill('Schulzeit')
-    await sPage.locator('[data-testid^="sandra-suggestion-"]').first().click()
-    await sPage.locator('[data-testid^="sandra-suggestion-use-"]').first().click()
+    await expect(sPage.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await sPage.getByTestId('sandra-composer-add').click()
     await sPage.getByTestId('sandra-list-send').click()
     await expect(sPage.getByTestId('sandra-share-cta')).toBeEnabled({ timeout: 15_000 })
     await sPage.getByTestId('sandra-share-cta').click()
@@ -331,9 +323,8 @@ test.describe('Sandra-Flow – Receiver Path (Ingrid)', () => {
     await sPage.getByTestId('sandra-anchor-chip-mama').click()
     await sPage.getByTestId('sandra-anchor-next').click()
     await sPage.locator('[data-testid^="sandra-trigger-"]').first().click()
-    await sPage.getByTestId('sandra-composer-seed').fill('Schulzeit')
-    await sPage.locator('[data-testid^="sandra-suggestion-"]').first().click()
-    await sPage.locator('[data-testid^="sandra-suggestion-use-"]').first().click()
+    await expect(sPage.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await sPage.getByTestId('sandra-composer-add').click()
     await sPage.getByTestId('sandra-list-send').click()
     await expect(sPage.getByTestId('sandra-share-cta')).toBeEnabled({ timeout: 15_000 })
     await sPage.getByTestId('sandra-share-cta').click()
@@ -381,9 +372,9 @@ test.describe('Sandra-Flow – Relationship-send hint', () => {
 
     // Pick the last relationship trigger: the bank renders biography (6) →
     // relationship (4) → freeform (1). The absolute last trigger is the
-    // freeform card, which has its own input path and does NOT lead to the
-    // composer-seed textarea. We therefore exclude `sandra-trigger-freeform`
-    // and pick the actual last relationship card.
+    // freeform card, which starts with an empty draft and would not produce
+    // a relationship-group question. We therefore exclude
+    // `sandra-trigger-freeform` and pick the actual last relationship card.
     const triggers = page.locator(
       '[data-testid^="sandra-trigger-"]:not([data-testid="sandra-trigger-freeform"])',
     )
@@ -391,9 +382,8 @@ test.describe('Sandra-Flow – Relationship-send hint', () => {
     expect(count).toBeGreaterThan(1)
     await triggers.nth(count - 1).click()
 
-    await page.getByTestId('sandra-composer-seed').fill('uns zwei')
-    await page.locator('[data-testid^="sandra-suggestion-"]').first().click()
-    await page.locator('[data-testid^="sandra-suggestion-use-"]').first().click()
+    await expect(page.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await page.getByTestId('sandra-composer-add').click()
     await page.getByTestId('sandra-list-send').click()
 
     // The share screen renders the relationship hint as a `.friends-hint`
@@ -409,9 +399,8 @@ test.describe('Sandra-Flow – Relationship-send hint', () => {
 
     // First trigger should be biography (Section A).
     await page.locator('[data-testid^="sandra-trigger-"]').first().click()
-    await page.getByTestId('sandra-composer-seed').fill('Schulzeit')
-    await page.locator('[data-testid^="sandra-suggestion-"]').first().click()
-    await page.locator('[data-testid^="sandra-suggestion-use-"]').first().click()
+    await expect(page.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await page.getByTestId('sandra-composer-add').click()
     await page.getByTestId('sandra-list-send').click()
 
     // No relationship hint text.
@@ -473,9 +462,8 @@ test.describe('Sandra-Flow – Web-Share-API stub', () => {
     await page.getByTestId('sandra-anchor-chip-mama').click()
     await page.getByTestId('sandra-anchor-next').click()
     await page.locator('[data-testid^="sandra-trigger-"]').first().click()
-    await page.getByTestId('sandra-composer-seed').fill('Schulzeit')
-    await page.locator('[data-testid^="sandra-suggestion-"]').first().click()
-    await page.locator('[data-testid^="sandra-suggestion-use-"]').first().click()
+    await expect(page.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await page.getByTestId('sandra-composer-add').click()
     await page.getByTestId('sandra-list-send').click()
     await expect(page.getByTestId('sandra-share-cta')).toBeEnabled({ timeout: 15_000 })
     await page.getByTestId('sandra-share-cta').click()
@@ -514,9 +502,8 @@ test.describe('Sandra-Flow – Two-person integration', () => {
     await sender.getByTestId('sandra-anchor-chip-mama').click()
     await sender.getByTestId('sandra-anchor-next').click()
     await sender.locator('[data-testid^="sandra-trigger-"]').first().click()
-    await sender.getByTestId('sandra-composer-seed').fill('Schulzeit')
-    await sender.locator('[data-testid^="sandra-suggestion-"]').first().click()
-    await sender.locator('[data-testid^="sandra-suggestion-use-"]').first().click()
+    await expect(sender.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await sender.getByTestId('sandra-composer-add').click()
     await sender.getByTestId('sandra-list-send').click()
     // preferSimpleMode checkbox is checked by default → simple mode activates
     // silently on Ingrid's side without a prompt (no click needed).
