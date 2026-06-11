@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import type { SandraFlowStrings } from '../../locales/types'
 import type { Locale } from '../../locales'
 import type { SandraAnchor } from '../../types/sandraFlow'
-import { findTrigger, getInspirationQuestions } from '../../data/loadPersonalQuestions'
-import { composeAll } from '../../lib/sandraFlow/templateEngine'
+import { findTrigger } from '../../data/loadPersonalQuestions'
+import { getVariants } from '../../lib/sandraFlow/variants'
 
 interface Props {
   t: SandraFlowStrings
@@ -13,13 +13,6 @@ interface Props {
   onChangeTrigger: () => void
   onDiscard: () => void
   onAdd: (text: string) => void
-}
-
-/** Prefix a curated example with the anrede so it reads as one sentence
- *  ("Mama, wie war es wirklich …"). The first letter is lowercased because
- *  the example continues the sentence after the vocative comma. */
-function withAnrede(anrede: string, question: string): string {
-  return `${anrede}, ${question.charAt(0).toLowerCase()}${question.slice(1)}`
 }
 
 export function SandraComposerStep({
@@ -32,25 +25,12 @@ export function SandraComposerStep({
   onAdd,
 }: Props) {
   const trigger = useMemo(() => findTrigger(locale, triggerId), [locale, triggerId])
-  const isFreeform = triggerId === 'freeform'
 
-  // All ready-made phrasings for this trigger: template variants that render
-  // without a seed, plus the curated inspiration examples. De-duplicated –
-  // a few triggers carry the same question in both banks.
-  const variants = useMemo(() => {
-    if (!trigger || isFreeform) return []
-    const fromTemplates = composeAll(trigger.templates, anchor.anrede, undefined).map(s => s.text)
-    const fromInspiration = getInspirationQuestions(locale, triggerId).map(q =>
-      withAnrede(anchor.anrede, q),
-    )
-    const seen = new Set<string>()
-    return [...fromTemplates, ...fromInspiration].filter(v => {
-      const key = v.trim().toLowerCase()
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    })
-  }, [trigger, isFreeform, anchor.anrede, locale, triggerId])
+  // All ready-made phrasings for this trigger (empty for freeform).
+  const variants = useMemo(
+    () => getVariants(locale, triggerId, anchor.anrede),
+    [locale, triggerId, anchor.anrede],
+  )
 
   // Single editable draft – pre-filled with the best phrasing so the
   // zero-typing path (pick topic → "Frage übernehmen") is two taps long.

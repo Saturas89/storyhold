@@ -62,11 +62,14 @@ export const SANDRA_FLOW_DE = {
 
   // ── Trigger pick (Screen 3) ────────────────────────────────────────
   trigger: {
+    title: 'Worüber möchtest du {anrede} fragen?',
+    subline: 'Wähl ein Thema – dahinter wartet eine fertige Frage, die du anpassen kannst.',
     sectionAboutThem: 'Über {anrede}',
     sectionAboutUs: 'Über uns zwei',
     sectionAboutUsHeart: '❤',
     sectionAboutUsHint: 'Diese Fragen gehen näher – formulier sie in deinem eigenen Tempo.',
     typeMyOwn: 'Eigene Frage formulieren',
+    typeMyOwnHint: 'Ohne Vorlage – ganz in deinen Worten.',
   },
 
   // ── Composer (Screen 4) ────────────────────────────────────────────
