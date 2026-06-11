@@ -89,7 +89,7 @@ export async function openFamilyHub(page: Page) {
  * Re-enters the hub from `/friends` after a full reload (e.g. after the
  * recipient has to refresh to pick up new shares).
  *
- * Crucially this waits for both `sync.ready` (no "Verbinde mit Server …"
+ * Crucially this waits for both `sync.ready` (no "Verbindung wird hergestellt …"
  * placeholder) AND the `tablist` itself, since the tab nav only
  * renders once `hasContacts` *and* `sync.ready` are both true – there is a
  * race window in which one of the two flips first.
@@ -111,7 +111,7 @@ async function waitForHubReady(page: Page) {
   // becomes true and the heading appears well within this window.
   await expect(page.getByRole('heading', { name: 'Familienmodus', exact: true })).toBeVisible({ timeout: 60_000 })
   // Wait for a positive signal: deviceId set in state means bootstrapSession()
-  // succeeded. "Verbinde mit Server …" disappears on both success AND error, so
+  // succeeded. "Verbindung wird hergestellt …" disappears on both success AND error, so
   // its absence is not a reliable sentinel — it leads to 35 s readDeviceIdentity
   // timeouts whenever bootstrapSession() throws.
   await page.waitForFunction(

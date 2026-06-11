@@ -1649,6 +1649,22 @@
   gap: 0.5rem;
 }
 
+.contact-handshake__connecting {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.contact-handshake__spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid var(--accent-tinted);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
 .family-progress-bar {
   height: 4px;
   background: var(--surface-raised);
