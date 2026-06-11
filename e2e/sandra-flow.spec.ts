@@ -166,6 +166,10 @@ test.describe('Sandra-Flow – DE Happy Path', () => {
     // Short-code URL: /join/CODE
     expect(url).toContain('/join/')
 
+    // ── Success screen: Sandra gets confirmation + next-steps hint ─────────
+    await expect(page.getByTestId('sandra-share-sent')).toBeVisible()
+    await expect(page.getByTestId('sandra-share-done')).toBeVisible()
+
     // ── Invite code is NOT shown as visible text in the DOM ────────────────
     const code = url.split('/join/').pop() ?? ''
     if (code.length > 0) {
@@ -177,6 +181,11 @@ test.describe('Sandra-Flow – DE Happy Path', () => {
     expect(await page.locator('[data-testid="qr-code"]').count()).toBe(0)
     expect(await page.locator('canvas[data-qr]').count()).toBe(0)
     expect(await page.locator('[class*="qrcode"]').count()).toBe(0)
+
+    // ── "Done" exits the flow and the draft is gone ─────────────────────────
+    await page.getByTestId('sandra-share-done').click()
+    await expect(page.getByTestId('sandra-share-sent')).not.toBeVisible()
+    expect(await page.evaluate(() => sessionStorage.getItem('rm-sandra-draft'))).toBeNull()
   })
 })
 
@@ -478,6 +487,83 @@ test.describe('Sandra-Flow – Web-Share-API stub', () => {
     // is informative for Sandra in the OS share menu.
     const combined = (p.title ?? '') + ' ' + (p.text ?? '')
     expect(combined).toMatch(/Mama/i)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Test 6b — Copy-link path (no Web-Share-API, e.g. desktop browsers)
+//
+// Without navigator.share the primary CTA copies the link instead of opening
+// a share sheet, and an explicit "copy link" secondary action is always
+// available. Both land on the success screen with the copy-specific hint.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Sandra-Flow – Copy-Link-Pfad ohne Web-Share-API', () => {
+  test.beforeEach(async ({ context }) => {
+    const mockState = createMockState()
+    await seedContext(context, { lang: 'de', profile: 'sandra', mockState })
+    // No Web-Share-API (desktop) + deterministic clipboard capture.
+    await context.addInitScript(() => {
+      interface ClipWindow extends Window { __copied__?: string[] }
+      const w = window as ClipWindow
+      w.__copied__ = []
+      Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: (text: string) => {
+            w.__copied__!.push(text)
+            return Promise.resolve()
+          },
+        },
+      })
+    })
+  })
+
+  test('Primär-CTA kopiert den Link und zeigt den Erfolgs-Screen', async ({ page }) => {
+    await page.goto('/ask')
+    await page.getByTestId('sandra-anchor-chip-mama').click()
+    await page.getByTestId('sandra-anchor-next').click()
+    await page.locator('[data-testid^="sandra-trigger-"]').first().click()
+    await expect(page.getByTestId('sandra-composer-draft')).not.toHaveValue('')
+    await page.getByTestId('sandra-composer-add').click()
+    await page.getByTestId('sandra-list-send').click()
+
+    // The explicit copy-link secondary action is visible alongside the CTA.
+    await expect(page.getByTestId('sandra-share-copy')).toBeVisible()
+
+    await expect(page.getByTestId('sandra-share-cta')).toBeEnabled({ timeout: 15_000 })
+    await page.getByTestId('sandra-share-cta').click()
+
+    // Link landed in the clipboard and points at /join/CODE.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => (window as Window & { __copied__?: string[] }).__copied__ ?? []),
+      )
+      .toHaveLength(1)
+    const copied = await page.evaluate(
+      () => (window as Window & { __copied__?: string[] }).__copied__![0],
+    )
+    expect(copied).toContain('/join/')
+
+    // Success screen with the copy-specific "send it via WhatsApp/email" hint.
+    await expect(page.getByTestId('sandra-share-sent')).toBeVisible()
+    await expect(page.getByText(/WhatsApp/i)).toBeVisible()
+
+    // Draft is cleared the moment the link left the device (reload-safe).
+    expect(await page.evaluate(() => sessionStorage.getItem('rm-sandra-draft'))).toBeNull()
+
+    // Re-copy from the success screen works.
+    await page.getByTestId('sandra-share-copy-again').click()
+    await expect
+      .poll(async () =>
+        page.evaluate(() => (window as Window & { __copied__?: string[] }).__copied__ ?? []),
+      )
+      .toHaveLength(2)
+
+    // Done exits the flow.
+    await page.getByTestId('sandra-share-done').click()
+    await expect(page.getByTestId('sandra-share-sent')).not.toBeVisible()
   })
 })
 

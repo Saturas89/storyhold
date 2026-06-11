@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, cleanup, waitFor } from '@testing-library/react'
+import { render, cleanup, waitFor, fireEvent } from '@testing-library/react'
 import { SandraShareStep } from './SandraShareStep'
 import { SANDRA_FLOW_DE } from '../../locales/de/sandraFlow'
 import { SANDRA_FLOW_EN } from '../../locales/en/sandraFlow'
@@ -50,9 +50,20 @@ function makeProps(
     onlineSharingEnabled: true,
     onEnableOnlineSharing: vi.fn(),
     onBack: vi.fn(),
+    onShared: vi.fn(),
     onClearDraft: vi.fn(),
     ...overrides,
   }
+}
+
+/** jsdom has no navigator.clipboard – install a resolvable stub per test. */
+function stubClipboard() {
+  const writeText = vi.fn(async (_text: string) => {})
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText },
+  })
+  return writeText
 }
 
 describe('SandraShareStep – header (DE)', () => {
@@ -218,5 +229,98 @@ describe('SandraShareStep – primary share action', () => {
       const cta = container.querySelector<HTMLButtonElement>('[data-testid="sandra-share-cta"]')!
       expect(cta.textContent ?? '').toContain('Mom')
     })
+  })
+})
+
+describe('SandraShareStep – secondary copy-link action', () => {
+  it('renders a visible copy-link button next to the primary CTA', async () => {
+    const { container } = render(<SandraShareStep {...makeProps()} />)
+    await waitFor(() => {
+      const copy = container.querySelector<HTMLButtonElement>('[data-testid="sandra-share-copy"]')!
+      expect(copy).not.toBeNull()
+      expect(copy.disabled).toBe(false)
+    })
+  })
+
+  it('copies the invite URL and advances to the success screen', async () => {
+    const writeText = stubClipboard()
+    const props = makeProps()
+    const { container } = render(<SandraShareStep {...props} />)
+    await waitFor(() => {
+      expect(
+        container.querySelector<HTMLButtonElement>('[data-testid="sandra-share-copy"]')!.disabled,
+      ).toBe(false)
+    })
+    fireEvent.click(container.querySelector('[data-testid="sandra-share-copy"]')!)
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="sandra-share-sent"]')).not.toBeNull()
+    })
+    expect(writeText).toHaveBeenCalledWith(FAKE_URL)
+    expect(props.onShared).toHaveBeenCalledTimes(1)
+    // Copy variant explains the next manual step (paste into WhatsApp/email).
+    const stem = SANDRA_FLOW_DE.share.sentCopyHint.split('{anrede}')[0]
+    expect(container.textContent ?? '').toContain(stem)
+  })
+})
+
+describe('SandraShareStep – success screen', () => {
+  async function renderSent() {
+    stubClipboard()
+    const props = makeProps()
+    const { container } = render(<SandraShareStep {...props} />)
+    await waitFor(() => {
+      expect(
+        container.querySelector<HTMLButtonElement>('[data-testid="sandra-share-copy"]')!.disabled,
+      ).toBe(false)
+    })
+    fireEvent.click(container.querySelector('[data-testid="sandra-share-copy"]')!)
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="sandra-share-sent"]')).not.toBeNull()
+    })
+    return { container, props }
+  }
+
+  it('explains what happens next (auto-connect + Family tab)', async () => {
+    const { container } = await renderSent()
+    const stem = SANDRA_FLOW_DE.share.sentNextSteps.split('{anrede}')[0]
+    expect(container.textContent ?? '').toContain(stem)
+    expect(container.textContent ?? '').not.toContain('{anrede}')
+  })
+
+  it('never exposes the invite code on the success screen', async () => {
+    const { container } = await renderSent()
+    expect(container.textContent ?? '').not.toContain('TSTCOD')
+  })
+
+  it('offers re-copy and a Done button that exits the flow', async () => {
+    const { container, props } = await renderSent()
+    expect(container.querySelector('[data-testid="sandra-share-copy-again"]')).not.toBeNull()
+    fireEvent.click(container.querySelector('[data-testid="sandra-share-done"]')!)
+    expect(props.onClearDraft).toHaveBeenCalledTimes(1)
+  })
+
+  it('navigator.share success also leads to the success screen', async () => {
+    const share = vi.fn(async () => {})
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share })
+    try {
+      const props = makeProps()
+      const { container } = render(<SandraShareStep {...props} />)
+      await waitFor(() => {
+        expect(
+          container.querySelector<HTMLButtonElement>('[data-testid="sandra-share-cta"]')!.disabled,
+        ).toBe(false)
+      })
+      fireEvent.click(container.querySelector('[data-testid="sandra-share-cta"]')!)
+      await waitFor(() => {
+        expect(container.querySelector('[data-testid="sandra-share-sent"]')).not.toBeNull()
+      })
+      expect(share).toHaveBeenCalledTimes(1)
+      expect(props.onShared).toHaveBeenCalledTimes(1)
+      const stem = SANDRA_FLOW_DE.share.sentTitleShare.split('{anrede}')[0].trim()
+      expect(container.textContent ?? '').toContain(stem)
+    } finally {
+      // Remove the stub so other tests keep the no-share jsdom default.
+      delete (navigator as unknown as Record<string, unknown>).share
+    }
   })
 })

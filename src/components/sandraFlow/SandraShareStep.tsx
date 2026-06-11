@@ -24,6 +24,12 @@ interface Props {
   /** Called when the user taps "Activate online sharing" from this step. */
   onEnableOnlineSharing: () => void
   onBack: () => void
+  /** Called once the link has left the device (share-sheet completed or link
+   *  copied). Clears the persisted draft so a reload can't re-send the same
+   *  questions — the in-memory draft stays alive for the success screen. */
+  onShared: () => void
+  /** Called from the success screen's "Done" button: resets the draft and
+   *  exits the flow. */
   onClearDraft: () => void
 }
 
@@ -37,12 +43,18 @@ export function SandraShareStep({
   onlineSharingEnabled,
   onEnableOnlineSharing,
   onBack,
+  onShared,
   onClearDraft,
 }: Props) {
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [urlLoading, setUrlLoading] = useState(false)
   const [urlError, setUrlError] = useState(false)
-  const [status, setStatus] = useState<'idle' | 'copied' | 'error' | 'sent'>('idle')
+  // 'compose' = preview + CTA; 'sent' = success screen after the link left
+  // the device. The success screen replaces the old silent exit-to-home so
+  // Sandra gets confirmation and learns what happens next (#invite-ux).
+  const [phase, setPhase] = useState<'compose' | 'sent'>('compose')
+  const [sentVia, setSentVia] = useState<'share' | 'copy'>('share')
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle')
   const [isSharing, setIsSharing] = useState(false)
 
   // Pre-generate the invite URL as soon as onShare becomes available.
@@ -63,12 +75,34 @@ export function SandraShareStep({
   }, [onShare])
 
   useEffect(() => {
-    if (status === 'idle') return
-    const timer = setTimeout(() => setStatus('idle'), 3500)
+    if (copyState === 'idle') return
+    const timer = setTimeout(() => setCopyState('idle'), 3500)
     return () => clearTimeout(timer)
-  }, [status])
+  }, [copyState])
 
   const hasRelationship = questions.some(q => q.group === 'relationship')
+
+  function enterSent(via: 'share' | 'copy') {
+    setSentVia(via)
+    setPhase('sent')
+    onShared()
+  }
+
+  /** Copy the invite URL. `advance` moves to the success screen on success
+   *  (compose phase); without it we only flash inline feedback (re-copy on
+   *  the success screen). */
+  function copyToClipboard(url: string, advance: boolean) {
+    if (!navigator.clipboard) {
+      setCopyState('error')
+      setIsSharing(false)
+      return
+    }
+    navigator.clipboard
+      .writeText(url)
+      .then(() => (advance ? enterSent('copy') : setCopyState('copied')))
+      .catch(() => setCopyState('error'))
+      .finally(() => setIsSharing(false))
+  }
 
   function handleShare() {
     if (isSharing || !shareUrl) return
@@ -81,16 +115,15 @@ export function SandraShareStep({
         .share({ title, text, url: shareUrl })
         .then(() => {
           setIsSharing(false)
-          setStatus('sent')
-          setTimeout(() => onClearDraft(), 200)
+          enterSent('share')
         })
         .catch(err => {
           setIsSharing(false)
           if ((err as Error).name === 'AbortError') return
-          fallbackCopy(shareUrl)
+          copyToClipboard(shareUrl, true)
         })
     } else {
-      fallbackCopy(shareUrl)
+      copyToClipboard(shareUrl, true)
     }
   }
 
@@ -104,27 +137,50 @@ export function SandraShareStep({
       .finally(() => setUrlLoading(false))
   }
 
-  function fallbackCopy(url: string) {
-    if (!navigator.clipboard) {
-      setStatus('error')
-      setIsSharing(false)
-      return
-    }
-    navigator.clipboard
-      .writeText(url)
-      .then(() => setStatus('copied'))
-      .catch(() => setStatus('error'))
-      .finally(() => setIsSharing(false))
-  }
+  const sub = (s: string) => s.split('{anrede}').join(anchor.anrede)
 
-  const buttonLabel =
-    isSharing
-      ? t.share.sending
-      : status === 'copied'
-      ? t.share.copied
-      : status === 'error'
-      ? t.share.error
-      : t.share.primaryCta.replace('{anrede}', anchor.anrede)
+  // ── Success screen: the link left the device ──────────────────────
+  if (phase === 'sent') {
+    return (
+      <div className="sandra-flow-view">
+        <section className="friends-section sandra-share" data-testid="sandra-share-sent">
+          <h2 className="friends-section-title">
+            {sub(sentVia === 'share' ? t.share.sentTitleShare : t.share.sentTitleCopy)}
+          </h2>
+
+          {sentVia === 'copy' && (
+            <p className="friends-hint">{sub(t.share.sentCopyHint)}</p>
+          )}
+
+          <p className="friends-hint">{sub(t.share.sentNextSteps)}</p>
+
+          {copyState === 'error' && (
+            <p className="friends-hint friends-hint--warn">{t.share.copyError}</p>
+          )}
+
+          <div className="friends-share">
+            <button
+              type="button"
+              className="share-cta-btn"
+              onClick={onClearDraft}
+              data-testid="sandra-share-done"
+            >
+              {t.share.done}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => shareUrl && copyToClipboard(shareUrl, false)}
+            data-testid="sandra-share-copy-again"
+          >
+            {copyState === 'copied' ? t.share.copied : t.share.copyAgain}
+          </button>
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="sandra-flow-view">
@@ -203,16 +259,36 @@ export function SandraShareStep({
           {onlineSharingEnabled && !urlError && (
             <button
               type="button"
-              className={`share-cta-btn${status === 'copied' || status === 'sent' ? ' share-cta-btn--success' : status === 'error' ? ' share-cta-btn--error' : ''}`}
+              className="share-cta-btn"
               onClick={handleShare}
               disabled={isSharing || urlLoading || !shareUrl}
               data-testid="sandra-share-cta"
             >
               {(isSharing || urlLoading) && <span className="share-cta-btn__spinner" aria-hidden="true" />}
-              {urlLoading ? t.share.generatingInvite : buttonLabel}
+              {urlLoading
+                ? t.share.generatingInvite
+                : isSharing
+                ? t.share.sending
+                : t.share.primaryCta.replace('{anrede}', anchor.anrede)}
             </button>
           )}
         </div>
+
+        {onlineSharingEnabled && !urlError && (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => shareUrl && copyToClipboard(shareUrl, true)}
+            disabled={urlLoading || !shareUrl}
+            data-testid="sandra-share-copy"
+          >
+            {copyState === 'error' ? t.share.error : t.share.copyCta}
+          </button>
+        )}
+
+        {copyState === 'error' && (
+          <p className="friends-hint friends-hint--warn">{t.share.copyError}</p>
+        )}
 
         <p className="friends-hint">
           {t.share.privacyHint.split('{anrede}').join(anchor.anrede)}
