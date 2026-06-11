@@ -344,7 +344,10 @@ export interface Translations {
     introTextDefaultName: string
     notEnabledHint: string
     enableButton: string
+    /** "Verbindung zu {name} wird hergestellt …" – uses {name}. */
     connecting: string
+    /** Fallback ohne Namen, falls handshake.displayName leer ist. */
+    connectingGeneric: string
     /** Mehrstufiges Warte-Feedback im Handshake (#165). */
     connectingHint: string
     connectingRetry: string

@@ -3,8 +3,8 @@ import { useTranslation } from '../locales'
 import type { ContactHandshake } from '../types'
 
 /** Waiting-state milestones for the contact-handshake (#165). After 3 s we
- *  add a reassuring time hint; after 10 s a retry; after 30 s a clearer
- *  failure message. */
+ *  add a reassuring time hint; after 10 s a retry; after 30 s the hint is
+ *  replaced by a clearer failure message — the retry stays available. */
 const HANDSHAKE_HINT_MS = 3_000
 const HANDSHAKE_RETRY_MS = 10_000
 const HANDSHAKE_TIMEOUT_MS = 30_000
@@ -116,12 +116,20 @@ export function ContactHandshakeView({
         )}
 
         {enabled && !myDeviceId && (
-          <div className="contact-handshake__waiting">
-            <p className="friends-hint">{c.connecting}</p>
+          <div className="contact-handshake__waiting" role="status">
+            <p className="friends-hint contact-handshake__connecting">
+              <span className="contact-handshake__spinner" aria-hidden="true" />
+              {handshake.displayName
+                ? c.connecting.replace('{name}', handshake.displayName)
+                : c.connectingGeneric}
+            </p>
             {waitElapsed >= HANDSHAKE_HINT_MS && waitElapsed < HANDSHAKE_TIMEOUT_MS && (
               <p className="friends-hint">{c.connectingHint}</p>
             )}
-            {waitElapsed >= HANDSHAKE_RETRY_MS && waitElapsed < HANDSHAKE_TIMEOUT_MS && (
+            {waitElapsed >= HANDSHAKE_TIMEOUT_MS && (
+              <p className="friends-hint friends-hint--warn">{c.connectingTimeout}</p>
+            )}
+            {waitElapsed >= HANDSHAKE_RETRY_MS && (
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
@@ -130,9 +138,6 @@ export function ContactHandshakeView({
               >
                 {c.connectingRetry}
               </button>
-            )}
-            {waitElapsed >= HANDSHAKE_TIMEOUT_MS && (
-              <p className="friends-hint friends-hint--warn">{c.connectingTimeout}</p>
             )}
           </div>
         )}
