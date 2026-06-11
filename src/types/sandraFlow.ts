@@ -50,7 +50,8 @@ export interface ComposedQuestion {
   group: TriggerGroup
   /** Final phrasing, possibly user-edited away from the template. */
   text: string
-  /** What Sandra typed into the composer textarea, if anything. */
+  /** Legacy field from the seed-based composer. New drafts no longer set it;
+   *  kept so older sessionStorage drafts keep parsing. */
   seed?: string
   createdAt: number
 }
@@ -74,7 +75,7 @@ export interface SandraDraft {
   questions: ComposedQuestion[]
   /** Trigger currently selected in the composer (if any). */
   currentTriggerId?: string
-  /** Seed text typed for the current trigger (if any). */
+  /** Legacy field from the seed-based composer; only read for old drafts. */
   currentSeed?: string
   /** Whether the receiver should land in Vereinfachter Bedienmodus (REQ-019)
    *  without being asked. Defaults to true in SandraShareStep because the

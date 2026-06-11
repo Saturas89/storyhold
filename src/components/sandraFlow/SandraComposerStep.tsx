@@ -10,11 +10,16 @@ interface Props {
   locale: Locale
   anchor: SandraAnchor
   triggerId: string
-  seed: string
-  onSeedChange: (seed: string) => void
   onChangeTrigger: () => void
   onDiscard: () => void
   onAdd: (text: string) => void
+}
+
+/** Prefix a curated example with the anrede so it reads as one sentence
+ *  ("Mama, wie war es wirklich …"). The first letter is lowercased because
+ *  the example continues the sentence after the vocative comma. */
+function withAnrede(anrede: string, question: string): string {
+  return `${anrede}, ${question.charAt(0).toLowerCase()}${question.slice(1)}`
 }
 
 export function SandraComposerStep({
@@ -22,8 +27,6 @@ export function SandraComposerStep({
   locale,
   anchor,
   triggerId,
-  seed,
-  onSeedChange,
   onChangeTrigger,
   onDiscard,
   onAdd,
@@ -31,63 +34,46 @@ export function SandraComposerStep({
   const trigger = useMemo(() => findTrigger(locale, triggerId), [locale, triggerId])
   const isFreeform = triggerId === 'freeform'
 
-  const [draftText, setDraftText] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editText, setEditText] = useState('')
-  const [discarded, setDiscarded] = useState<Set<string>>(new Set())
-  const [showInspiration, setShowInspiration] = useState(false)
+  // All ready-made phrasings for this trigger: template variants that render
+  // without a seed, plus the curated inspiration examples. De-duplicated –
+  // a few triggers carry the same question in both banks.
+  const variants = useMemo(() => {
+    if (!trigger || isFreeform) return []
+    const fromTemplates = composeAll(trigger.templates, anchor.anrede, undefined).map(s => s.text)
+    const fromInspiration = getInspirationQuestions(locale, triggerId).map(q =>
+      withAnrede(anchor.anrede, q),
+    )
+    const seen = new Set<string>()
+    return [...fromTemplates, ...fromInspiration].filter(v => {
+      const key = v.trim().toLowerCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }, [trigger, isFreeform, anchor.anrede, locale, triggerId])
+
+  // Single editable draft – pre-filled with the best phrasing so the
+  // zero-typing path (pick topic → "Frage übernehmen") is two taps long.
+  const [draftText, setDraftText] = useState(() => variants[0] ?? '')
   const [showEmptyError, setShowEmptyError] = useState(false)
 
-  // Rotating placeholder for the seed textarea. Picks one at random on mount.
-  const placeholder = useMemo(() => {
-    const list = t.composer.seedPlaceholders
-    return list[Math.floor(Math.random() * list.length)]
-  }, [t])
-
   useEffect(() => {
-    setDraftText('')
-    setEditingId(null)
-    setDiscarded(new Set())
+    setDraftText(variants[0] ?? '')
     setShowEmptyError(false)
-  }, [triggerId])
+  }, [triggerId, variants])
 
-  const suggestions = useMemo(() => {
-    if (!trigger || isFreeform) return []
-    return composeAll(trigger.templates, anchor.anrede, seed).filter(
-      s => !discarded.has(s.template.id),
-    )
-  }, [trigger, anchor.anrede, seed, discarded, isFreeform])
-
-  const inspiration = useMemo(
-    () => (isFreeform ? [] : getInspirationQuestions(locale, triggerId)),
-    [locale, triggerId, isFreeform],
-  )
-
-  function handleUseSuggestion(text: string) {
-    onAdd(text)
-  }
-
-  function handleEditSuggestion(templateId: string, text: string) {
-    setEditingId(templateId)
-    setEditText(text)
-  }
-
-  function handleCommitEdit() {
-    if (!editText.trim()) return
-    onAdd(editText.trim())
-    setEditingId(null)
-  }
-
-  function handleAddFreeform() {
-    if (!draftText.trim()) {
+  function handleAdd() {
+    const text = draftText.trim()
+    if (!text) {
       setShowEmptyError(true)
       return
     }
-    onAdd(draftText.trim())
+    onAdd(text)
   }
 
-  function handleInspirationClick(text: string) {
-    onSeedChange(text)
+  function handlePickVariant(text: string) {
+    setDraftText(text)
+    setShowEmptyError(false)
   }
 
   return (
@@ -99,7 +85,7 @@ export function SandraComposerStep({
       </div>
 
       <section className="friends-section sandra-composer">
-        {/* Zone A: trigger chip */}
+        {/* Header: active trigger chip, tap to switch topics */}
         <div className="sandra-composer__zone-a">
           <button
             type="button"
@@ -111,163 +97,62 @@ export function SandraComposerStep({
           </button>
         </div>
 
-        {/* Zone B: seed textarea or freeform textarea */}
+        {/* The question draft – the single source of truth on this screen */}
         <div className="sandra-composer__zone-b">
-          {isFreeform ? (
-            <>
-              <label className="input-label" htmlFor="sandra-freeform-input">
-                {t.composer.freeformLabel}
-              </label>
-              <textarea
-                id="sandra-freeform-input"
-                className="input-textarea sandra-composer__textarea"
-                placeholder={t.composer.freeformPlaceholder}
-                value={draftText}
-                onChange={e => {
-                  setDraftText(e.target.value)
-                  setShowEmptyError(false)
-                }}
-                rows={4}
-                aria-describedby="sandra-freeform-hint"
-                data-testid="sandra-composer-freeform"
-              />
-              <p id="sandra-freeform-hint" className="friends-hint">
-                {t.composer.freeformHelper.replace('{anrede}', anchor.anrede)}
-              </p>
-            </>
-          ) : (
-            <>
-              <label className="input-label" htmlFor="sandra-seed-input">
-                {t.composer.seedLabel}
-              </label>
-              <textarea
-                id="sandra-seed-input"
-                className="input-textarea sandra-composer__textarea"
-                placeholder={placeholder}
-                value={seed}
-                onChange={e => onSeedChange(e.target.value)}
-                rows={3}
-                aria-describedby="sandra-seed-hint"
-                data-testid="sandra-composer-seed"
-              />
-              <p id="sandra-seed-hint" className="friends-hint">
-                {t.composer.seedHelper}
-              </p>
-            </>
-          )}
+          <label className="input-label" htmlFor="sandra-draft-input">
+            {t.composer.questionLabel.replace('{anrede}', anchor.anrede)}
+          </label>
+          <textarea
+            id="sandra-draft-input"
+            className="input-textarea sandra-composer__textarea"
+            placeholder={t.composer.questionPlaceholder}
+            value={draftText}
+            onChange={e => {
+              setDraftText(e.target.value)
+              setShowEmptyError(false)
+            }}
+            rows={4}
+            aria-describedby="sandra-draft-hint"
+            data-testid="sandra-composer-draft"
+          />
+          <p id="sandra-draft-hint" className="friends-hint">
+            {t.composer.questionHelper.replace('{anrede}', anchor.anrede)}
+          </p>
         </div>
 
-        {/* Zone C: suggestions (template variants) */}
-        {!isFreeform && suggestions.length > 0 && (
-          <div className="sandra-composer__zone-c">
-            <h3 className="friends-section-title">{t.composer.suggestionsHeading}</h3>
-            <p className="friends-hint">{t.composer.suggestionsHint}</p>
-            <div className="friends-list">
-              {suggestions.map(({ template, text }) => {
-                const isEditing = editingId === template.id
-                return (
-                  <div
-                    key={template.id}
-                    className="family-card sandra-suggestion"
-                    data-testid={`sandra-suggestion-${template.id}`}
-                  >
-                    {isEditing ? (
-                      <div className="sandra-suggestion__edit">
-                        <textarea
-                          className="input-textarea"
-                          value={editText}
-                          onChange={e => setEditText(e.target.value)}
-                          rows={3}
-                          aria-label={t.composer.suggestionEdit}
-                          autoFocus
-                        />
-                        <div className="sandra-suggestion__edit-actions">
-                          <button
-                            type="button"
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => setEditingId(null)}
-                          >
-                            {t.composer.discard}
-                          </button>
-                          <button
-                            type="button"
-                            className="share-cta-btn sandra-suggestion__use"
-                            onClick={handleCommitEdit}
-                            disabled={!editText.trim()}
-                          >
-                            {t.composer.suggestionUse}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <span className="sandra-suggestion__text">{text}</span>
-                        <div className="sandra-suggestion__actions">
-                          <button
-                            type="button"
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => handleEditSuggestion(template.id, text)}
-                            data-testid={`sandra-suggestion-edit-${template.id}`}
-                          >
-                            {t.composer.suggestionEdit}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn--primary btn--sm"
-                            onClick={() => handleUseSuggestion(text)}
-                            data-testid={`sandra-suggestion-use-${template.id}`}
-                          >
-                            {t.composer.suggestionUse}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => setDiscarded(prev => new Set(prev).add(template.id))}
-                            aria-label={t.composer.suggestionDiscardAria}
-                            title={t.composer.suggestionDiscardAria}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Inspiration drawer */}
-        {!isFreeform && inspiration.length > 0 && (
-          <details
-            className="sandra-inspiration"
-            open={showInspiration}
-            onToggle={e => setShowInspiration((e.target as HTMLDetailsElement).open)}
-            data-testid="sandra-inspiration"
-          >
-            <summary className="friends-section-title sandra-inspiration__toggle">
-              {t.composer.inspirationToggle}
-            </summary>
-            <p className="friends-hint">{t.composer.inspirationHint}</p>
-            <ul className="sandra-inspiration__list">
-              {inspiration.map((q, i) => (
-                <li key={i}>
+        {/* Alternative phrasings – tapping one replaces the draft above */}
+        {variants.length > 0 && (
+          <div className="sandra-composer__variants">
+            <h3 className="friends-section-title">{t.composer.variantsTitle}</h3>
+            <p className="friends-hint">{t.composer.variantsHint}</p>
+            <ul className="sandra-variant-list">
+              {variants.map((text, i) => (
+                <li key={text}>
                   <button
                     type="button"
-                    className="btn btn--ghost btn--sm sandra-inspiration__item"
-                    onClick={() => handleInspirationClick(q)}
+                    className="btn btn--ghost btn--sm sandra-variant"
+                    aria-pressed={text === draftText}
+                    onClick={() => handlePickVariant(text)}
+                    data-testid={`sandra-variant-${i}`}
                   >
-                    {q}
+                    {text}
                   </button>
                 </li>
               ))}
             </ul>
-          </details>
+          </div>
         )}
 
         {/* Footer */}
         <div className="sandra-composer__footer">
+          <button
+            type="button"
+            className="share-cta-btn sandra-composer__add"
+            onClick={handleAdd}
+            data-testid="sandra-composer-add"
+          >
+            {t.composer.addQuestion}
+          </button>
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -276,16 +161,6 @@ export function SandraComposerStep({
           >
             {t.composer.discard}
           </button>
-          {isFreeform && (
-            <button
-              type="button"
-              className="share-cta-btn sandra-composer__add"
-              onClick={handleAddFreeform}
-              data-testid="sandra-composer-add"
-            >
-              {t.composer.addQuestion}
-            </button>
-          )}
         </div>
         {showEmptyError && (
           <p className="friends-hint friends-hint--warn">{t.composer.addEmptyError}</p>

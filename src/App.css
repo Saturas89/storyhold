@@ -2138,78 +2138,35 @@
   resize: vertical;
 }
 
-.sandra-composer__zone-c {
+/* Alternative phrasings: a flat tap-list. Tapping an item replaces the
+   draft textarea above – the active item is marked via aria-pressed. */
+.sandra-composer__variants {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
 }
 
-.sandra-suggestion {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.75rem;
-}
-
-.sandra-suggestion__text {
-  font-size: 1rem;
-  color: var(--text);
-  line-height: 1.5;
-}
-
-.sandra-suggestion__actions {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.sandra-suggestion__edit {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.sandra-suggestion__edit-actions {
-  display: flex;
-  gap: 0.6rem;
-  justify-content: flex-end;
-}
-
-.sandra-suggestion__use {
-  max-width: 12rem;
-  padding: 0.6rem 1rem;
-  font-size: 0.95rem;
-}
-
-.sandra-inspiration {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-}
-
-.sandra-inspiration__toggle {
-  cursor: pointer;
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 0.4rem;
-}
-
-.sandra-inspiration__list {
+.sandra-variant-list {
   list-style: none;
   padding: 0;
-  margin: 0.4rem 0 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
 
-.sandra-inspiration__item {
+.sandra-variant {
   text-align: left;
   white-space: normal;
   width: 100%;
   min-height: 2.4rem;
   padding: 0.6rem 0.75rem;
+}
+
+.sandra-variant[aria-pressed='true'] {
+  border-color: var(--border-focus);
+  background: var(--accent-tinted);
+  color: var(--accent);
 }
 
 /* Footer: primary CTA centered up to 22rem (matches .share-cta-btn), with
