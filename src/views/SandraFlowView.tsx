@@ -297,6 +297,7 @@ export function SandraFlowView({
       onShare={onShare}
       onlineSharingEnabled={onlineSharingEnabled}
       onEnableOnlineSharing={onEnableOnlineSharing}
+      onShared={clearDraft}
       onClearDraft={handleResetAndExit}
     />
   )
