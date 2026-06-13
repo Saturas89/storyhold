@@ -2067,14 +2067,9 @@
   border-color: var(--accent);
 }
 
-/* Section variant: soft accent stripe for the "Über uns zwei" group.
-   Earlier this had a tinted card background which fought visually with the
-   nested .family-card surface – we now use a subtle border + accent-colored
-   title so the section reads as "more intimate" without nesting cards. */
+/* Section variant: accent-coloured title for the "Über uns zwei" group. */
 .sandra-section--accent {
   position: relative;
-  padding-left: 0.75rem;
-  border-left: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 .sandra-section--accent .friends-section-title {
