@@ -106,7 +106,7 @@ export function SandraComposerStep({
             <h3 className="friends-section-title">{t.composer.variantsTitle}</h3>
             <p className="friends-hint">{t.composer.variantsHint}</p>
             <ul className="sandra-variant-list">
-              {variants.map((text, i) => (
+              {variants.filter(text => text !== draftText).map((text, i) => (
                 <li key={text}>
                   <button
                     type="button"
