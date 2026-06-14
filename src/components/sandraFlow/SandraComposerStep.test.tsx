@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, cleanup, fireEvent } from '@testing-library/react'
 import { SandraComposerStep } from './SandraComposerStep'
+import { getVariants } from '../../lib/sandraFlow/variants'
 import { SANDRA_FLOW_DE } from '../../locales/de/sandraFlow'
 import { SANDRA_FLOW_EN } from '../../locales/en/sandraFlow'
 import type { SandraAnchor } from '../../types/sandraFlow'
@@ -81,23 +82,24 @@ describe('SandraComposerStep – variant list', () => {
     expect(onAdd).not.toHaveBeenCalled()
   })
 
-  it('marks the variant matching the draft as pressed', () => {
-    const { getByTestId } = render(<SandraComposerStep {...makeProps()} />)
-    expect(getByTestId('sandra-variant-0').getAttribute('aria-pressed')).toBe('true')
-    fireEvent.click(getByTestId('sandra-variant-2'))
-    expect(getByTestId('sandra-variant-0').getAttribute('aria-pressed')).toBe('false')
-    expect(getByTestId('sandra-variant-2').getAttribute('aria-pressed')).toBe('true')
+  it('does not show the variant that matches the current draft', () => {
+    // The draft is pre-filled with variants[0]; that text must not appear in
+    // the rendered list – the textarea already shows it, showing it again
+    // in the pill list was confusing (duplicate visual).
+    const { getAllByTestId, getByTestId } = render(<SandraComposerStep {...makeProps()} />)
+    const draftText = (getByTestId('sandra-composer-draft') as HTMLTextAreaElement).value
+    const texts = getAllByTestId(/sandra-variant-\d+/).map(b => b.textContent?.trim())
+    expect(texts).not.toContain(draftText)
   })
 
   it('de-duplicates phrasings that exist as template variant AND inspiration example', () => {
     // 'what-you-would-do-differently' carries „Was hättest du in der Erziehung
-    // anders gemacht?" in both banks → must appear only once.
-    const { getAllByTestId } = render(
-      <SandraComposerStep {...makeProps({ triggerId: 'what-you-would-do-differently' })} />,
-    )
-    const texts = getAllByTestId(/sandra-variant-\d+/).map(b => b.textContent?.trim())
+    // anders gemacht?" in both banks → getVariants must return it only once.
+    // We test via getVariants() directly because the component now filters out
+    // whichever variant matches the current draft from the rendered pill list.
+    const variants = getVariants('de', 'what-you-would-do-differently', 'Mama')
     const target = 'Mama, was hättest du in der Erziehung anders gemacht?'
-    expect(texts.filter(t => t === target)).toHaveLength(1)
+    expect(variants.filter(t => t === target)).toHaveLength(1)
   })
 
   it('edited draft is sent verbatim via the CTA', () => {
